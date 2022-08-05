@@ -32,14 +32,23 @@ function createAppTitle (title) {
         button,
       };
   }
-   // через функцию создаем и возвращаем список элементов ( вероятно здесь надо все поменять так, чтоба записывать новые дела в массив)
+   // через функцию создаем и возвращаем список элементов 
    function createTodoList () {
-    let list = document.createElement('ol'); //!! создаем переменную лист и присваиваем ей новый элемент ol(нумерованный список)
+    let list = document.createElement('ul'); //!! создаем переменную лист и присваиваем ей новый элемент ul(нумерованный список)
     list.classList.add('list-group'); // добавляем аттрибут list-group для бутстрап
     return list;
   }
+
+  // let odoItems = [];
+
+  // function Task(name) {
+  //   this.name = name;
+  //   this.completed = false;
+  // }
+
+
   // функция создает DOM елемент с делом. название дела задается в форме, поэтому его мы укажем как аргумент функции, чтобы связать отправку форму с названием и созданием списка
-  function createTodoItem(name) { // создает эелмент списка дел и возвращает все необходимое для взаимодействия с этим элементом.
+  function createTodoItem(name) { // создает элемент списка дел и возвращает все необходимое для взаимодействия с этим элементом.
     let item = document.createElement('li'); // создаем элемент li, который затем помещаем в список
     let buttonGroup = document.createElement('div'); //  создаем и помещаем кнопки в элемент (группу кнопок), который красиво покажет их в одной группе
     let doneButton = document.createElement('div');
@@ -70,47 +79,69 @@ function createAppTitle (title) {
     };  
 }
 
+function createTodoApp(container, title = 'Список дел'){
+  // поочердно вызываем все созданные  3 функции 
+  let todoAppTitle = createAppTitle(title); // здесь передаем аргумент в функцию в виде строки
+  let todoItemForm = createTodoItemForm(); 
+  let todoList = createTodoList();
+  
+// размещаем результат вызова функций внутри контейнера. createAppTitle и createTodoList вернут DOM елемент, который можно разместить
+container.append(todoAppTitle); 
+container.append(todoItemForm.form); // возвращаем объект в котором есть form, поэтому мы размещаем не сам todoItemForm, а сначала берем св-во form. см комментарий на 28 строке
+container.append(todoList);
+
+//регистрируем обработчик события submit на форме по нажатию на enter или на кнопку создания дела
+todoItemForm.form.addEventListener('submit', function(e){
+  //эта строчка необходима, чтобы предовратить стандартное действие браузера
+  //мы не хотим, чтобы странице перезагружалась при отправке формы
+  e.preventDefault();
+
+  //проверяем есть ли значение внутри инпута и игнорируем создание элемента, если пользователь ничего не ввел в поле
+  if (!todoItemForm.input.value){
+    return;
+  }
+
+  let todoItem = createTodoItem(todoItemForm.input.value); // помещаем в элемент todoItem результат выполнения функции сreateTodoItem
+
+    //добавляем обработчики по клику на кнопки
+    todoItem.doneButton.addEventListener('click', function() {
+      todoItem.item.classList.toggle('list-group-item-success'); // при нажатии на кнопку готово с помощью метода класс лист toggle добавляем или убираем класс из list-group-item-success (в бутстрапе будет красить эелмент в зеленый)
+    });
+    todoItem.deleteButton.addEventListener('click', function() { // на кнопку удаления вешаем обработчик, в котором спрашиваем пользователя переда удалением
+      if (confirm('Вы уверены?')) { //Функция confirm отображает модальное окно с текстом вопроса question и двумя кнопками: Да и Отмена. вернет true если человек нажмет да
+        todoItem.item.remove(); // в случае подтверждения - удаляем
+      }
+    });
+
+    //создаем и добавляем в список новое дело(элемент) с названием из поля для ввода
+    todoList.append(todoItem.item); // в item хранится сам элемент 
+  //обнуляем значение в поле, чтобы не стирать его вручную
+  todoItemForm.input.value = '';
+  });
+}
+
 // вызываем функции, чтобы элементы были помещены в DOM. Для этого создаем обработчик событий DOMContentLoaded на document 
 document.addEventListener('DOMContentLoaded', function() { // это необходимо, чтобы мы получили доступ к DOM дереву загрузившейся HTML страницы
-    let container = document.getElementById('todo-app'); // создаем переменную container - div c id todo-appв котором я размещаю приложение
-
-    // поочердно вызываем все созданные  3 функции 
-    let todoAppTitle = createAppTitle('Список дел'); // здесь передаем аргумент в функцию в виде строки
-    let todoItemForm = createTodoItemForm(); 
-    let todoList = createTodoList();
-    
-// размещаем результат вызова функций внутри контейнера. createAppTitle и createTodoList вернут DOM елемент, который можно разместить
-  container.append(todoAppTitle); 
-  container.append(todoItemForm.form); // возвращаем объект в котором есть form, поэтому мы размещаем не сам todoItemForm, а сначала берем св-во form. см комментарий на 28 строке
-  container.append(todoList);
-
-  //регистрируем обработчик события submit на форме по нажатию на enter или на кнопку создания дела
-  todoItemForm.form.addEventListener('submit', function(e){
-    //эта строчка необходима, чтобы предовратить стандартное действие браузера
-    //мы не хотим, чтобы странице перезагружалась при отправке формы
-    e.preventDefault();
-
-    //проверяем есть ли значение внутри инпута и игнорируем создание элемента, если пользователь ничего не ввел в поле
-    if (!todoItemForm.input.value){
-      return;
-    }
-
-    let todoItem = createTodoItem(todoItemForm.input.value); // помещаем в элемент todoItem результат выполнения функции сreateTodoItem
-
-      //добавляем обработчики по клику на кнопки
-      todoItem.doneButton.addEventListener('click', function() {
-        todoItem.item.classList.toggle('list-group-item-success'); // при нажатии на кнопку готово с помощью метода класс лист toggle добавляем или убираем класс из list-group-item-success (в бутстрапе будет красить эелмент в зеленый)
-      });
-      todoItem.deleteButton.addEventListener('click', function() { // на кнопку удаления вешаем обработчик, в котором спрашиваем пользователя переда удалением
-        if (confirm('Вы уверены?')) { //Функция confirm отображает модальное окно с текстом вопроса question и двумя кнопками: Да и Отмена. вернет true если человек нажмет да
-          todoItem.item.remove(); // в случае подтверждения - удаляем
-        }
-      });
-
-      //создаем и добавляем в список новое дело(элемент) с названием из поля для ввода
-      todoList.append(todoItem.item); // в item хранится сам элемент 
-    //обнуляем значение в поле, чтобы не стирать его вручную
-    todoItemForm.input.value = '';
-  });
+  createTodoApp(document.getElementById('todo-app'), 'Мои дела'); 
 });
+
+
+// function renderData(toDoList) {
+  //     const container = document.getElementById("todo-app");
+  //     container.innerHTML = "";
+  //     toDoList.forEach((element) => {
+  //         const newDiv = document.createElement('div');
+  //         newDiv.innerHTML = element;
+  //         container.append(newDiv);
+  //     });
+  // }
+  
+  
+  // const data = ['пойти погулять', 'купить хлеб'];
+  // document.getElementById("button").addEventListener("click", () => {
+  //     data.push(document.getElementById("input").value);
+  //     renderData(data);
+  // });
+  
+  // renderData(data); 
   
